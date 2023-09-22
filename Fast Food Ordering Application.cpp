@@ -17,10 +17,16 @@ void paymentModule();
 void pointsModule();
 
 //Global Variable
-string membershipList[100], name[100], contactNum[100];
-double topUp[100], points[100];
+struct membershipDetails //Membership Details Structure
+{
+    string membershipList[100], name[100], contactNum[100];
+    double topUp[100], points[100];
+};
+membershipDetails member; 
 int position = 0, chosen_position;
-string dataFile = "Membership Details.txt";
+string dataFile = "Membership Details.txt"; //Name of the file
+string info = "//Membership Name\n//Membership Number, Contact Number, Top Up, Points\n"; //Information inside the file
+string clearInfo;
 
 //Main Function
 int main()
@@ -35,14 +41,14 @@ int main()
 
     while (stop2 == false)
     {
-         cout << "\nChoose your option (1-4)" << endl;
-         cout << "1. Register Customer" << endl;
-         cout << "2. Food Selection and Service" << endl;
-         cout << "3. Membership Card Top Up" << endl;
-         cout << "4. Exit" << endl;
-         cout << "--> ";
-         getline(cin, option);
-         stop = false;
+        cout << "\nChoose your option (1-4)" << endl;
+        cout << "1. Register Customer" << endl;
+        cout << "2. Food Selection and Service" << endl;
+        cout << "3. Membership Card Top Up" << endl;
+        cout << "4. Exit" << endl;
+        cout << "--> ";
+        getline(cin, option);
+        stop = false;
 
         while (stop == false)
         {
@@ -99,11 +105,12 @@ void registerCustomerModule()
     srand(time(0));
 
     inFile.open(dataFile);
-
     position = 0;
-    while (getline(inFile, name[position])) // Retrieve each data into array form
+    getline(inFile, clearInfo);
+    getline(inFile, clearInfo);
+    while (getline(inFile, member.name[position])) // Retrieve each data into array form
     {
-        inFile >> membershipList[position] >> contactNum[position] >> topUp[position] >> points[position];
+        inFile >> member.membershipList[position] >> member.contactNum[position] >> member.topUp[position] >> member.points[position];
         inFile.get();
         position++;
     }
@@ -122,7 +129,7 @@ void registerCustomerModule()
     //Check if the generated membership number is the same as previous membership number
     for (int i = 0; i < position; i++)
     {
-        if (membershipList[i] == new_membershipNum)
+        if (member.membershipList[i] == new_membershipNum)
         {
             new_membershipNum = "ABC";
             for (int i = 0; i < 6; i++) //Generate another random membership number
@@ -137,7 +144,7 @@ void registerCustomerModule()
     inFile.close();
 
     //Assign new membership number into membership number list
-    membershipList[position] = new_membershipNum;
+    member.membershipList[position] = new_membershipNum;
 
     //Displaying register title
     cout << "\n";
@@ -148,22 +155,22 @@ void registerCustomerModule()
     //Customer Name Validation
     bool contactNumValidation = false, customerNameValidation = false;
     cout << "Customer Name: ";
-    getline(cin, name[position]);
+    getline(cin, member.name[position]);
     while (customerNameValidation == false)
     {
-        if (name[position].empty()) //Check if the name input is empty
+        if (member.name[position].empty()) //Check if the name input is empty
         {
             cout << "Invalid Customer Name!!! Enter your name again: ";
-            getline(cin, name[position]);
+            getline(cin, member.name[position]);
             customerNameValidation = false;
         }
 
-        for (int i = 0; i < name[position].length(); i++)
+        for (int i = 0; i < member.name[position].length(); i++)
         {
-            if (isspace(name[position].at(0)) || isdigit(name[position].at(i)) || !isalpha(name[position].at(i)) && !isspace(name[position].at(i))) //Check if the name input have space at the beginning, contain any special character or digits
+            if (isspace(member.name[position].at(0)) || isdigit(member.name[position].at(i)) || !isalpha(member.name[position].at(i)) && !isspace(member.name[position].at(i))) //Check if the name input have space at the beginning, contain any special character or digits
             {
                 cout << "Invalid Customer Name!!! Enter your name again: ";
-                getline(cin, name[position]);
+                getline(cin, member.name[position]);
                 customerNameValidation = false;
                 break;
             }
@@ -173,22 +180,22 @@ void registerCustomerModule()
 
     //Contact Number Validation
     cout << "Contact Number (Excluding -): ";
-    getline(cin, contactNum[position]);
+    getline(cin, member.contactNum[position]);
     while (contactNumValidation == false)
     {
-        if (contactNum[position].empty()) //Check if the contact number input is empty
+        if (member.contactNum[position].empty()) //Check if the contact number input is empty
         {
             cout << "Invalid contact number!!! Enter your contact number again: ";
-            getline(cin, contactNum[position]);
+            getline(cin, member.contactNum[position]);
             contactNumValidation = false;
         }
 
-        for (int i = 0; i < contactNum[position].length(); i++)
+        for (int i = 0; i < member.contactNum[position].length(); i++)
         {
-            if (isspace(contactNum[position].at(i)) || !isdigit(contactNum[position].at(i))) //Check if the contact number contain any space, special character or alphabet
+            if (isspace(member.contactNum[position].at(i)) || !isdigit(member.contactNum[position].at(i))) //Check if the contact number contain any space, special character or alphabet
             {
                 cout << "Invalid contact number!!! Enter your contact number again: ";
-                getline(cin, contactNum[position]);
+                getline(cin, member.contactNum[position]);
                 contactNumValidation = false;
                 break;
             }
@@ -197,17 +204,18 @@ void registerCustomerModule()
     }
 
     //Set the membership points and top up value to 0
-    topUp[position] = 0.00;
-    points[position] = 0.00;
+    member.topUp[position] = 0.00;
+    member.points[position] = 0.00;
 
-    cout << "Your membership card number is: " << membershipList[position] << endl;
-    cout << "Your membership point is: " << points[position] << endl << endl;
+    cout << "Your membership card number is: " << member.membershipList[position] << endl;
+    cout << "Your membership topup is: " << member.topUp[position] << endl;
+    cout << "Your membership point is: " << member.points[position] << endl << endl;
 
     outFile.open(dataFile);
-
+    outFile << info;
     for (int i = 0; i < position + 1; i++) // Write all the data back to the file
     {
-        outFile << name[i] << "\n" << membershipList[i] << " " << contactNum[i] << " " << topUp[i] << " " << points[i] << endl;
+        outFile << member.name[i] << "\n" << member.membershipList[i] << " " << member.contactNum[i] << " " << member.topUp[i] << " " << member.points[i] << endl;
     }
 
     outFile.close();
@@ -215,9 +223,11 @@ void registerCustomerModule()
     inFile.open(dataFile);
 
     position = 0;
-    while (getline(inFile, name[position])) // Retrieve each data into array form again because new customer registered
+    getline(inFile, clearInfo);
+    getline(inFile, clearInfo);
+    while (getline(inFile, member.name[position])) // Retrieve each data into array form again because new customer registered
     {
-        inFile >> membershipList[position] >> contactNum[position] >> topUp[position] >> points[position];
+        inFile >> member.membershipList[position] >> member.contactNum[position] >> member.topUp[position] >> member.points[position];
         inFile.get();
         position++;
     }
@@ -425,9 +435,11 @@ void topupModule()
     inFile.open(dataFile);
 
     position = 0; //Reset the position to 0
-    while (getline(inFile, name[position])) // Retrieve each data into array form
+    getline(inFile, clearInfo);
+    getline(inFile, clearInfo);
+    while (getline(inFile, member.name[position])) // Retrieve each data into array form
     {
-        inFile >> membershipList[position] >> contactNum[position] >> topUp[position] >> points[position];
+        inFile >> member.membershipList[position] >> member.contactNum[position] >> member.topUp[position] >> member.points[position];
         inFile.get();
         position++;
     }
@@ -442,7 +454,7 @@ void topupModule()
     {
         for (int i = 0; i < position; i++)
         {
-            if (membershipValidation == membershipList[i]) //Check if the membership number entered is valid
+            if (membershipValidation == member.membershipList[i]) //Check if the membership number entered is valid
             {
                 chosen_position = i;
                 isValid = true;
@@ -553,7 +565,7 @@ void topupModule()
         if (choice == "Y" || choice == "y") //Check if the choice input is Y or y
         {
             total = topupAmount - topupCharge;
-            topUp[chosen_position] += total;
+            member.topUp[chosen_position] += total;
             stop = true;
         }
         else if (choice == "N" || choice == "n") //Check if the choice input is N or n
@@ -574,9 +586,10 @@ void topupModule()
     //Checking Balance
     outFile.open(dataFile);
 
+    outFile << info;
     for (int i = 0; i < position; i++) // Write all the data back to the file
     {
-        outFile << name[i] << "\n" << membershipList[i] << " " << contactNum[i] << " " << topUp[i] << " " << points[i] << endl;
+        outFile << member.name[i] << "\n" << member.membershipList[i] << " " << member.contactNum[i] << " " << member.topUp[i] << " " << member.points[i] << endl;
     }
 
     outFile.close();
@@ -590,7 +603,7 @@ void topupModule()
         if (choice == "Y" || choice == "y") //Check if the choice input is Y or y
         {
             cout << "\n" << setw(25) << setfill('-') << "\n";
-            cout << showpoint << fixed << setprecision(2) << "Your balance is RM" << topUp[chosen_position] << endl;
+            cout << showpoint << fixed << setprecision(2) << "Your balance is RM" << member.topUp[chosen_position] << endl;
             cout << setw(25) << setfill('-') << "\n";
             stop = true;
         }
@@ -619,4 +632,3 @@ void pointsModule()
 {
     //Insert Membership Points Module here
 }
-
