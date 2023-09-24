@@ -16,8 +16,9 @@ using namespace std;
 void registerCustomerModule();
 void foodServiceModule();
 void topupModule();
-void paymentModule();
-bool pointsModule(double, string);
+void paymentModule(char, int, int[], char[], string[], float[]);
+bool pointsModule(double, string, double, char, int, int[], char[], string[], float[]);
+void printReceipt(char, int, int[], char[], string[], float[], double, double);
 
 //Global Variable
 struct membershipDetails //Membership Details Structure
@@ -191,9 +192,9 @@ void registerCustomerModule()
 
     //Displaying register title
     cout << "\n";
-    cout << setw(35) << setfill('*') << "\n";
+    cout << "***********************************" << endl;
     cout << " Customer Membership Registration " << endl;
-    cout << setw(35) << setfill('*') << "\n";
+    cout << "***********************************" << endl;
 
     //Customer Name Validation
     bool contactNumValidation = false, customerNameValidation = false;
@@ -281,7 +282,415 @@ void registerCustomerModule()
 //Food Service and Selection Module Function
 void foodServiceModule()
 {
-    //Insert here
+    //User Input Data
+    int foodChoice, quantity;
+    char waysToDine, foodType, orderAgain;
+    //Menu Data
+    string foods[6] = { "Burger" , "Fried Chicken" , "Nasi Lemak" , "Nuggets" , "Fries" , "Coke" };
+    float foodPrice[6] = { 8.00     , 6.00            , 10.00        , 6.00      , 3.00    , 2.00 };
+    //Order Data
+    int orderCount = 0, orderedQuantity[10], foodChoiceSave[10];
+    char orderedFoodType[10];
+    string foodsOrdered[10];
+    float foodOrderedPrice[10];
+    //Service Charge Data
+    float charges;
+
+    //customer choosing to dine in or take away
+    cout << "\nDo you want to dine-in or take-away?" << endl;
+    cout << "[D] Dine-In" << endl;
+    cout << "[T] Take-Away" << endl;
+    cout << "--> ";
+    cin >> waysToDine;
+    //validation of input
+    bool dineValidation = false;
+    while (dineValidation == false)
+    {
+        if (waysToDine == 'D' || waysToDine == 'd')//update dine-in charges
+        {
+            charges = 0.1;
+            dineValidation = true;
+        }
+        else if (waysToDine == 'T' || waysToDine == 't')//update take-away charges
+        {
+            charges = 2;
+            dineValidation = true;
+        }
+        else//Invalid input! User try again.
+        {
+            cout << "\nInvalid input! Please choose again." << endl;
+            cout << "[D] Dine-In" << endl;
+            cout << "[T] Take-Away" << endl;
+            cout << "--> ";
+            cin >> waysToDine;
+        }
+    }
+    //Ordering Selection Function
+    //1st : Get User Input
+    //2nd : Store Data in Arrays
+    //3rd : Display Order Details
+    //4th : Ask to order again or stop ordering
+    for (int i = 0; i < 10; i++)//Will keep looping the Ordering Function //Until "Max Order = 10" reached or user stop ordering
+    {
+        do//1.0 : Display menu and food selection
+        {
+            int choiceCount = 0;
+            //Menu Display
+            cout << "\nWhat would you like to order?" << endl;
+            cout << "Food              || Price" << endl;
+            cout << "==================||================" << endl;
+            for (int i = 0; i < 6; i++)// loop print all the menu's foods and price with format
+            {
+                cout << left << setw(18) << setfill(' ') << foods[i]
+                    << "|| RM" << fixed << setprecision(2) << right << setw(8) << setfill(' ') << foodPrice[i]
+                    << "  [" << i + 1 << "]" << endl;
+            }
+            //let user choose the order based on numbers given
+            cout << "*Press the number inside [ ] to select your order" << endl;
+            cout << "--> ";
+            cin >> foodChoice;
+            if (foodChoice > 6 || foodChoice <= 0)//validation for available option
+            {
+                cout << "\nOption does not exist. Please try again." << endl;
+                choiceCount++;
+            }
+        } while (foodChoice > 6 || foodChoice <= 0);// will keep looping until user key in the available number of foodChoice 
+
+        //1.1 : Get user to want set or ala-carte
+        cout << "\nDo you want Set or Ala-carte or Both?" << endl;
+        cout << "(Set includes fries and coke)" << endl;
+        cout << "[S] for Set" << endl;
+        cout << "[A] for Ala-carte" << endl;
+        cout << "[B] for Both" << endl;
+        cout << "--> ";
+        cin >> foodType;
+        //validation
+        bool foodTypeValidation = false;
+        while (foodTypeValidation == false)
+        {
+            if (foodType == 'S' || foodType == 's' || foodType == 'A' || foodType == 'a' || foodType == 'B' || foodType == 'b')
+            {
+                if (foodType == 's')//change from small to large capital
+                {
+                    foodType = 'S';
+                }
+                else if (foodType == 'a')//change from small to large capital
+                {
+                    foodType = 'A';
+                }
+                else if (foodType == 'b')//change from small to large capital
+                {
+                    foodType = 'B';
+                }
+                foodTypeValidation = true; //break validation loop
+            }
+            else //call out again to ask user to input again
+            {
+                cout << "\nInvalid input! Please choose again." << endl;
+                cout << "(Set includes fries and coke)" << endl;
+                cout << "[S] for Set" << endl;
+                cout << "[A] for Ala-carte" << endl;
+                cout << "[B] for Both" << endl;
+                cout << "--> ";
+                cin >> foodType;
+            }
+        }
+
+        //1.2 : Get user quantity of food selected 
+        cout << "How much Quantity : ";
+        cin >> quantity;
+        //validation
+        bool quantityValidation = false;
+        while (quantityValidation == false)
+        {
+            if (quantity >= 10) //can only have Max 10 quantity
+            {
+                cout << "Max quantity has reached!! Please type in a new quantity : ";
+                cin >> quantity;
+            }
+            else if (quantity <= 0) //quantity must be greater than 0
+            {
+                cout << "Please type in quantity greater than 0 : ";
+                cin >> quantity;
+            }
+            else //break validation loop
+            {
+                quantityValidation = true;
+            }
+        }
+
+        //2 : Store the data user inputed into an array based on current order count
+        foodsOrdered[orderCount] = foods[foodChoice - 1];
+        orderedFoodType[orderCount] = foodType;
+        orderedQuantity[orderCount] = quantity;
+        foodChoiceSave[orderCount] = foodChoice - 1; //To save for further edit track
+        //calculation of single order food price *calculation included "multipled by quantity"
+        if (foodType == 'S' || foodType == 's')//if set will also add on the price of fries and coke
+        {
+            foodOrderedPrice[orderCount] = (foodPrice[foodChoice - 1] + foodPrice[4] + foodPrice[5]) * quantity;
+        }
+        else if (foodType == 'B' || foodType == 'b')//if both double the price of food choice and also add on fries and coke
+        {
+            foodOrderedPrice[orderCount] = (foodPrice[foodChoice - 1] * 2 + foodPrice[4] + foodPrice[5]) * quantity;
+        }
+        else//just add on the ala-carte price
+        {
+            foodOrderedPrice[orderCount] = foodPrice[foodChoice - 1] * quantity;
+        }
+        //condition if 2 index of foodsOrdered and orderedFoodType are the same
+        // if (orderCount != 0)//to make sure the validation can run when there are more than 1 index
+        // {
+        //     for (int i = 0; i < orderCount + 1; i++)
+        //     {
+        //         if (foodsOrdered[i] == foodsOrdered[orderCount] && orderedFoodType[i] == orderedFoodType[orderCount])
+        //         {
+        //             orderedQuantity[i] += orderedQuantity[orderCount]; //Add on quantity to same type of index
+        //             foodOrderedPrice[i] += foodOrderedPrice[orderCount]; //Add on ordered price to same type of index
+        //         }
+        //     }
+        //     // orderCount -= 1; //reduce the order index
+        // }
+
+
+        //3 : Display the data user inputed
+        cout << endl;
+        cout << "Your current order:                                                               " << endl;
+        cout << "Order No.         Food              Type              Quantity          Price     " << endl;
+        cout << "==================================================================================" << endl;
+        for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+        {   //Array value display with the same initialization value [j] 
+            //      else if used [orderCount] value it will only print the same exact recent order 2 times
+            cout << j + 1 << left << setw(17) << setfill(' ') << "." <<
+                left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+                left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+                left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+                "RM " << foodOrderedPrice[j] << endl;
+        }
+        cout << "==================================================================================" << endl;
+
+        //4 : Ask user if they want to continue to order
+        cout << "Order Again?" << endl;
+        cout << "*Press Any Button for Yes; [N] for No; [E] for Edit" << endl;
+        cout << "--> ";
+        cin >> orderAgain;
+
+        if (orderAgain == 'N' || orderAgain == 'n')//Will stop when user key in "N" or "n"
+        {
+            break;
+        }
+
+        else if (orderAgain == 'E' || orderAgain == 'e')//Staff edit mode
+        {
+            int editChoice, editType, toEditFoodChoice;
+            char editContinue;
+            bool editStop = false;
+
+            while (editStop == false)
+            {
+                cout << "\n***Order editing mode***" << endl;
+                cout << endl;
+
+                cout << "Your current order:                                                               " << endl;
+                cout << "Order No.         Food              Type              Quantity          Price     " << endl;
+                cout << "==================================================================================" << endl;
+                for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+                {   //Array value display with the same initialization value [j] 
+                    //      else if used [orderCount] value it will only print the same exact recent order 2 times
+                    cout << j + 1 << left << setw(17) << setfill(' ') << "." <<
+                        left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+                        left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+                        left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+                        "RM " << foodOrderedPrice[j] << endl;
+                }
+                cout << "==================================================================================" << endl;
+                //get which selection to edit
+                cout << "Please select which (Order No.) you would like to have a change : ";
+                cin >> editChoice;
+                while (editChoice > orderCount + 1 || editChoice < 1)
+                {
+                    cout << "Invalid Selection! Select again." << endl;
+                    cout << "Please select which (Order No.) you would like to have a change : ";
+                    cin >> editChoice;
+                }
+
+                //get what type of action
+                cout << "What would you like to edit?" << endl;
+                cout << "[1] Type   [2] Quantity [3] Remove order entirely " << endl;
+                cout << "[Any Button] Cancel Edit" << endl;
+                cout << "--> ";
+                cin >> editType;
+
+                //EDIT CHOICE ACTIONS
+                switch (editType)
+                {
+                case 1: //Type edit
+                    cout << "\nDo you want Set or Ala-carte or Both?" << endl;
+                    cout << "(Set includes fries and coke)" << endl;
+                    cout << "[S] for Set ;" << endl;
+                    cout << "[A] for Ala-carte ;" << endl;
+                    cout << "[B] for Both " << endl;
+                    cout << "--> ";
+                    cin >> foodType;
+                    //validation
+                    foodTypeValidation = false;
+                    while (foodTypeValidation == false)
+                    {
+                        if (foodType == 'S' || foodType == 's' || foodType == 'A' || foodType == 'a' || foodType == 'B' || foodType == 'b')
+                        {
+                            if (foodType == 's')//change from small to large capital
+                            {
+                                foodType = 'S';
+                            }
+                            else if (foodType == 'a')//change from small to large capital
+                            {
+                                foodType = 'A';
+                            }
+                            else if (foodType == 'b')//change from small to large capital
+                            {
+                                foodType = 'B';
+                            }
+                            foodTypeValidation = true; //break validation loop
+                        }
+                        else //call out again to ask user to input again
+                        {
+                            cout << "\nInvalid input! Please choose again." << endl;
+                            cout << "(Set includes fries and coke)" << endl;
+                            cout << "[S] for Set ;" << endl;
+                            cout << "[A] for Ala-carte ;" << endl;
+                            cout << "[B] for Both " << endl;
+                            cout << "--> ";
+                            cin >> foodType;
+                        }
+                    }
+                    orderedFoodType[editChoice - 1] = foodType;
+
+                    //calculation of single order food price *calculation included "multipled by quantity" (edit ver.)
+                    toEditFoodChoice = foodChoiceSave[editChoice - 1]; //take the saved foodChoice number from the saved array
+                    if (foodType == 'S' || foodType == 's')//if set will also add on the price of fries and coke
+                    {
+                        foodOrderedPrice[editChoice - 1] = (foodPrice[toEditFoodChoice] + foodPrice[4] + foodPrice[5]) * orderedQuantity[editChoice - 1];
+                    }
+                    else if (foodType == 'B' || foodType == 'b')//if both double the price of food choice and also add on fries and coke
+                    {
+                        foodOrderedPrice[editChoice - 1] = (foodPrice[toEditFoodChoice] * 2 + foodPrice[4] + foodPrice[5]) * orderedQuantity[editChoice - 1];
+                    }
+                    else//just add on the ala-carte price
+                    {
+                        foodOrderedPrice[editChoice - 1] = foodPrice[toEditFoodChoice] * orderedQuantity[editChoice - 1];
+                    }
+                    break;
+                case 2: //quantity edit
+                    cout << "How much Quantity : ";
+                    cin >> quantity;
+                    //validation
+                    quantityValidation = false;
+                    while (quantityValidation == false)
+                    {
+                        if (quantity >= 10) //can only have Max 10 quantity
+                        {
+                            cout << "Max quantity has reached!! Please type in a new quantity : ";
+                            cin >> quantity;
+                        }
+                        else if (quantity <= 0) //quantity must be greater than 0
+                        {
+                            cout << "Please type in quantity greater than 0 : ";
+                            cin >> quantity;
+                        }
+                        else //break validation loop
+                        {
+                            quantityValidation = true;
+                        }
+                    }
+                    orderedQuantity[editChoice - 1] = quantity;
+
+                    //calculation of single order food price *calculation included "multipled by quantity" (edit ver.)
+                    toEditFoodChoice = foodChoiceSave[editChoice - 1]; //take the saved foodChoice number from the saved array
+                    if (foodType == 'S' || foodType == 's')//if set will also add on the price of fries and coke
+                    {
+                        foodOrderedPrice[editChoice - 1] = (foodPrice[toEditFoodChoice] + foodPrice[4] + foodPrice[5]) * orderedQuantity[editChoice - 1];
+                    }
+                    else if (foodType == 'B' || foodType == 'b')//if both double the price of food choice and also add on fries and coke
+                    {
+                        foodOrderedPrice[editChoice - 1] = (foodPrice[toEditFoodChoice] * 2 + foodPrice[4] + foodPrice[5]) * orderedQuantity[editChoice - 1];
+                    }
+                    else//just add on the ala-carte price
+                    {
+                        foodOrderedPrice[editChoice - 1] = foodPrice[toEditFoodChoice] * orderedQuantity[editChoice - 1];
+                    }
+                    break;
+                case 3: //remove selected order no. data
+                    if (orderCount < 1)
+                    {
+                        cout << "\nCannot remove. Only have 1 order" << endl;
+                    }
+                    else
+                    {
+                        orderCount -= 1;
+                        //update order count in order
+                        for (int i = editChoice - 1; i < orderCount + 1; i++)
+                        {
+                            foodsOrdered[i] = foodsOrdered[i + 1];
+                            orderedFoodType[i] = orderedFoodType[i + 1];
+                            orderedQuantity[i] = orderedQuantity[i + 1];
+                            foodOrderedPrice[i] = foodOrderedPrice[i + 1];
+                        }
+                    }
+                    break;
+                default:
+                    break;
+                }
+                cout << endl;
+                //print out current changed order
+                cout << "Your current order:                                                               " << endl;
+                cout << "Order No.         Food              Type              Quantity          Price     " << endl;
+                cout << "==================================================================================" << endl;
+                for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+                {   //Array value display with the same initialization value [j] 
+                    //      else if used [orderCount] value it will only print the same exact recent order 2 times
+                    cout << j + 1 << left << setw(17) << setfill(' ') << "." <<
+                        left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+                        left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+                        left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+                        "RM " << foodOrderedPrice[j] << endl;
+                }
+                cout << "==================================================================================" << endl << endl;
+
+                //ask if there's anything more to edit
+                cout << "Need to edit more?" << endl;
+                cout << "[Y] Yes [Any Button] No" << endl;
+                cout << "--> ";
+                cin >> editContinue;
+                //edit module action
+                if (editContinue == 'Y' || editContinue == 'y')//edit module continue
+                {
+                    continue;
+                }
+                else//stop edit module
+                {
+                    editStop = true;
+                }
+            }
+            //ask to order again or not
+            cout << "Order Again?" << endl;
+            cout << "*Press Any Button for Yes; [N] for No" << endl;
+            cout << "--> ";
+            cin >> orderAgain;
+            if (orderAgain == 'N' || orderAgain == 'n')//Will stop when user key in "N" or "n"
+            {
+                break;
+            }
+
+            else //A new order count is added and loopback Ordering Function
+            {
+                orderCount++;
+            }
+        }
+        else //A new order count is added and loopback Ordering Function
+        {
+            orderCount++;
+        }
+    }
+    paymentModule(waysToDine, orderCount, orderedQuantity, orderedFoodType, foodsOrdered, foodOrderedPrice);
 }
 
 //Membership Card top up Module Function
@@ -369,6 +778,7 @@ void topupModule()
         //Top Up
         if (stop2 == false)
         {
+            cout << showpoint << fixed << setprecision(2) << "\nYour current top up balance is : RM" << member.topUp[chosen_position] << endl;
             cout << "\nChoose top-up amount (1-4)" << endl;
             cout << "1. RM5" << endl;
             cout << "2. RM10" << endl;
@@ -465,9 +875,9 @@ void topupModule()
     {
         if (choice == "Y" || choice == "y") //Check if the choice input is Y or y
         {
-            cout << "\n" << setw(25) << setfill('-') << "\n";
-            cout << showpoint << fixed << setprecision(2) << "Your balance is RM" << member.topUp[chosen_position] << endl;
-            cout << setw(25) << setfill('-') << "\n";
+            cout << "\n---------------------------" << endl;
+            cout << "Your balance is RM" << member.topUp[chosen_position] << endl;
+            cout << "---------------------------" << endl;
             stop = true;
         }
         else if (choice == "N" || choice == "n") //Check if the choice input is N or n
@@ -485,9 +895,36 @@ void topupModule()
 }
 
 //Payment Module Function
-void paymentModule()
+void paymentModule(char waysToDine, int orderCount, int orderedQuantity[], char orderedFoodType[], string foodsOrdered[], float foodOrderedPrice[])
 {
-    double payment = 5; //Payment Testing
+    double subtotal = 0;
+    double payment = 0; //Payment Testing
+    for (int i = 0; i < orderCount + 1; i++)
+    {
+        subtotal += foodOrderedPrice[i];
+    }
+    if (waysToDine == 'D')
+    {
+        payment = subtotal * 1.10;
+    }
+    else if (waysToDine == 'T')
+    {
+        payment = subtotal + 2.00;
+    }
+    cout << "\nYour order:                                                               " << endl;
+    cout << "Order No.         Food              Type              Quantity          Price     " << endl;
+    cout << "==================================================================================" << endl;
+    for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+    {   
+        cout << j + 1 << left << setw(17) << setfill(' ') << "." <<
+            left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+            left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+            left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+            "RM " << foodOrderedPrice[j] << endl;
+    }
+    cout << "==================================================================================" << endl << endl;
+    cout << showpoint << fixed << setprecision(2) << "Subtotal: RM" << subtotal << endl;
+    cout << showpoint << fixed << setprecision(2) << "Total Payment: RM" << payment << endl;
     bool stop = false, isValid = false, stop2 = false, stop3 = false, stop4 = false;
     string membershipValidation, choice, paymentMethod;
     ifstream inFile;
@@ -508,6 +945,7 @@ void paymentModule()
     inFile.close();
 
     cout << "\nEnter your membership number to proceed to payment: ";
+    cin.get();
     getline(cin, membershipValidation);
 
     //Membership Number Validation
@@ -610,10 +1048,11 @@ void paymentModule()
                 }
                 else if (member.topUp[chosen_position] >= payment)
                 {
-                    pointsModule(payment, paymentMethod);
+                    pointsModule(payment, paymentMethod, subtotal, waysToDine, orderCount, orderedQuantity, orderedFoodType, foodsOrdered, foodOrderedPrice);
                     member.topUp[chosen_position] -= payment;
                     cout << showpoint << fixed << setprecision(2) << "\nPayment received using top up. Your new membership top up is RM" << member.topUp[chosen_position] << ".";
                     cout << "\nYou have earned " << (int)payment << " points. Your new membership points is " << member.points[chosen_position] << " points." << endl;
+                    printReceipt(waysToDine, orderCount, orderedQuantity, orderedFoodType, foodsOrdered, foodOrderedPrice, subtotal, payment);
                     break;
                 }
             }
@@ -621,7 +1060,7 @@ void paymentModule()
         }
         else if (paymentMethod == "2")
         {
-            stop4 = pointsModule(payment, paymentMethod);
+            stop4 = pointsModule(payment, paymentMethod, subtotal, waysToDine, orderCount, orderedQuantity, orderedFoodType, foodsOrdered, foodOrderedPrice);
             if (stop4 == true)
             {
                 break;
@@ -656,7 +1095,7 @@ void paymentModule()
 }
 
 //Membership Points Module Function
-bool pointsModule(double payment, string paymentMethod)
+bool pointsModule(double payment, string paymentMethod, double subtotal, char waysToDine, int orderCount, int orderedQuantity[], char orderedFoodType[], string foodsOrdered[], float foodOrderedPrice[])
 {
     ifstream inFile;
     ofstream outFile;
@@ -685,6 +1124,7 @@ bool pointsModule(double payment, string paymentMethod)
         {
             member.points[chosen_position] -= payment * 100;
             cout << "\nPayment received using membership points. Your new membership points is " << member.points[chosen_position] << "." << endl;
+            printReceipt(waysToDine, orderCount, orderedQuantity, orderedFoodType, foodsOrdered, foodOrderedPrice, subtotal, payment);
             return true;
         }
         else if ((double)member.points[chosen_position] / 100 < payment)
@@ -703,4 +1143,51 @@ bool pointsModule(double payment, string paymentMethod)
     }
 
     outFile.close();
+}
+
+void printReceipt(char waysToDine, int orderCount, int orderedQuantity[], char orderedFoodType[], string foodsOrdered[], float foodOrderedPrice[], double subtotal, double payment)
+{
+    ofstream outFile;
+    string receiptFile = member.membershipList[chosen_position] + " " + member.name[chosen_position] + " Receipt.txt";
+    outFile.open(receiptFile);
+    outFile << "NELOON FAST FOOD" << endl;
+    outFile << setw(16) << setfill('*') << "\n";
+    outFile << setw(11) << setfill(' ') << "RECEIPT" << endl;
+    outFile << setw(16) << setfill('*') << "\n";
+    outFile << "Order No.         Food              Type              Quantity          Price     " << endl;
+    outFile << "==================================================================================" << endl;
+    for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+    {
+        outFile << j + 1 << left << setw(17) << setfill(' ') << "." <<
+            left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+            left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+            left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+            "RM " << foodOrderedPrice[j] << endl;
+    }
+    outFile << "==================================================================================" << endl << endl;
+    outFile << showpoint << fixed << setprecision(2) << "Subtotal: RM" << subtotal << endl;
+    outFile << showpoint << fixed << setprecision(2) << "Total Payment: RM" << payment << endl;
+    outFile << "Membership number: " << member.membershipList[chosen_position] << endl;
+    outFile << "Membership name: " << member.name[chosen_position] << endl;
+    outFile.close();
+
+    cout << "\nNELOON FAST FOOD" << endl;
+    cout << "****************" << endl;
+    cout << "     RECEIPT" << endl;
+    cout << "****************" << endl;
+    cout << "Order No.         Food              Type              Quantity          Price     " << endl;
+    cout << "==================================================================================" << endl;
+    for (int j = 0; j < orderCount + 1; j++)//condition needs to + 1 else first order won't display 
+    {
+        cout << j + 1 << left << setw(17) << setfill(' ') << "." <<
+            left << setw(18) << setfill(' ') << foodsOrdered[j] <<
+            left << setw(18) << setfill(' ') << orderedFoodType[j] <<
+            left << setw(18) << setfill(' ') << orderedQuantity[j] <<
+            "RM " << foodOrderedPrice[j] << endl;
+    }
+    cout << "==================================================================================" << endl << endl;
+    cout << showpoint << fixed << setprecision(2) << "Subtotal: RM" << subtotal << endl;
+    cout << showpoint << fixed << setprecision(2) << "Total Payment: RM" << payment << endl;
+    cout << "Membership number: " << member.membershipList[chosen_position] << endl;
+    cout << "Membership name: " << member.name[chosen_position] << endl;
 }
