@@ -14,15 +14,16 @@ void registerCustomerModule();
 void foodServiceModule();
 void topupModule();
 void paymentModule();
-void pointsModule();
+bool pointsModule(double, string);
 
 //Global Variable
 struct membershipDetails //Membership Details Structure
 {
     string membershipList[100], name[100], contactNum[100];
-    double topUp[100], points[100];
+    double topUp[100];
+    int points[100];
 };
-membershipDetails member; 
+membershipDetails member;
 int position = 0, chosen_position;
 string dataFile = "Membership Details.txt"; //Name of the file
 string info = "//Membership Name\n//Membership Number, Contact Number, Top Up, Points\n"; //Information inside the file
@@ -31,9 +32,8 @@ string clearInfo;
 //Main Function
 int main()
 {
+    bool stop = false, stop2 = false;
     string option;
-    bool stop = false;
-    bool stop2 = false;
 
     cout << setw(45) << setfill('-') << "\n";
     cout << "Welcome to Fast Food Ordering Application" << endl;
@@ -414,20 +414,16 @@ void foodServiceModule()
             orderCount++;
         }
     }
+    paymentModule();
 }
 
 //Membership Card top up Module Function
 void topupModule()
 {
     const double topupCharge = 0.50;
-    double total = 0.00;
-    double topupAmount;
-    string topupChoice;
-    string choice;
-    string membershipValidation;
-    bool isValid = false;
-    bool stop = false;
-    bool stop2 = false;
+    double total = 0.00, topupAmount;
+    string topupChoice, choice, membershipValidation;
+    bool isValid = false, stop = false, stop2 = false;
 
     ifstream inFile;
     ofstream outFile;
@@ -624,11 +620,220 @@ void topupModule()
 //Payment Module Function
 void paymentModule()
 {
-    //Inser Payment Module here
+    double payment = 5; //Payment Testing
+    bool stop = false, isValid = false, stop2 = false, stop3 = false, stop4 = false;
+    string membershipValidation, choice, paymentMethod;
+    ifstream inFile;
+    ofstream outFile;
+
+    inFile.open(dataFile);
+
+    position = 0; //Reset the position to 0
+    getline(inFile, clearInfo);
+    getline(inFile, clearInfo);
+    while (getline(inFile, member.name[position])) // Retrieve each data into array form
+    {
+        inFile >> member.membershipList[position] >> member.contactNum[position] >> member.topUp[position] >> member.points[position];
+        inFile.get();
+        position++;
+    }
+
+    inFile.close();
+
+    cout << "\nEnter your membership number to proceed to payment: ";
+    getline(cin, membershipValidation);
+
+    //Membership Number Validation
+    while (isValid == false)
+    {
+        for (int i = 0; i < position; i++)
+        {
+            if (membershipValidation == member.membershipList[i]) //Check if the membership number entered is valid
+            {
+                chosen_position = i;
+                isValid = true;
+                stop = false;
+                break;
+            }
+        }
+        if (isValid == false)
+        {
+            if (stop == false)
+            {
+                if (membershipValidation.empty()) //If the membership number input empty, ask the user to register a membership number
+                {
+                    cout << "Invalid membership number!!! Do you want to register a new membership number (Y/N): ";
+                    getline(cin, choice);
+                }
+                else //If the membership number not correct, ask the user to register a membership number
+                {
+                    cout << "Invalid membership number!!! Do you want to register a new membership number (Y/N): ";
+                    getline(cin, choice);
+                }
+            }
+            if (choice == "Y" || choice == "y") //Check if the choice input is Y or y
+            {
+                registerCustomerModule(); //Register a new customer
+
+                cout << "\nEnter your membership number to proceed to payment: ";
+                getline(cin, membershipValidation);
+                stop = false;
+            }
+            else if (choice == "N" || choice == "n") //Check if the choice input is N or n
+            {
+                cout << "\nEnter your membership number to proceed to payment: ";
+                getline(cin, membershipValidation);
+                stop = false;
+            }
+            else if (choice != "Y" || choice != "y" || choice != "N" || choice != "n" || choice.empty()) //Check if the choice input is invalid
+            {
+                cout << "Invalid input!!! Do you want to register a new membership number (Y/N): ";
+                getline(cin, choice);
+                stop = true;
+            }
+        }
+    }
+
+    while (stop3 == false)
+    {
+        while (stop4 == false)
+        {
+            cout << "\nChoose your payment method or cancel the purchase (1-3)";
+            cout << "\n1. Top Up";
+            cout << "\n2. Membership Points";
+            cout << "\n3. Cancel the purchase";
+            cout << "\n--> ";
+            getline(cin, paymentMethod);
+            stop4 = true;
+        }
+        if (paymentMethod == "1")
+        {
+            while (stop2 == false)
+            {
+                if (member.topUp[chosen_position] < payment)
+                {
+                    cout << "\nInsufficient Top Up Balance !!! Choose your option (1-2)";
+                    cout << "\n1. Top Up Balance";
+                    cout << "\n2. Cancel the purchase";
+                    cout << "\n--> ";
+                    getline(cin, choice);
+                    stop = false;
+                    while (stop == false)
+                    {
+                        if (choice == "1")
+                        {
+                            topupModule();
+                            break;
+                        }
+                        else if (choice == "2")
+                        {
+                            cout << "\nThe order is cancelled" << endl;
+                            stop2 = true;
+                            break;
+                        }
+                        else if (choice != "1" || choice != "2" || choice.empty()) //Check if the choice input is invalid
+                        {
+                            cout << "\nInvalid Input !!! Insufficient Top Up Balance !!! Choose your option (1-2)";
+                            cout << "\n1. Top Up Balance";
+                            cout << "\n2. Cancel the purchase";
+                            cout << "\n--> ";
+                            getline(cin, choice);
+                        }
+                    }
+                }
+                else if (member.topUp[chosen_position] >= payment)
+                {
+                    pointsModule(payment, paymentMethod);
+                    member.topUp[chosen_position] -= payment;
+                    cout << showpoint << fixed << setprecision(2) << "\nPayment received using top up. Your new membership top up is RM" << member.topUp[chosen_position] << ".";
+                    cout << "\nYou have earned " << (int)payment << " points. Your new membership points is " << member.points[chosen_position] << " points." << endl;
+                    break;
+                }
+            }
+            break;
+        }
+        else if (paymentMethod == "2")
+        {
+            stop4 = pointsModule(payment, paymentMethod);
+            if (stop4 == true)
+            {
+                break;
+            }
+        }
+        else if (paymentMethod == "3")
+        {
+            cout << "\nThe order is cancelled" << endl;
+            break;
+        }
+        else if (paymentMethod != "1" || paymentMethod != "2" || paymentMethod != "3" || paymentMethod.empty())
+        {
+            cout << "\nInvalid Input !!! Choose your payment method or cancel the purchase (1-3)";
+            cout << "\n1. Top Up";
+            cout << "\n2. Membership Points";
+            cout << "\n3. Cancel the purchase";
+            cout << "\n--> ";
+            getline(cin, paymentMethod);
+            stop4 = true;
+        }
+    }
+
+    outFile.open(dataFile);
+
+    outFile << info;
+    for (int i = 0; i < position; i++) // Write all the data back to the file
+    {
+        outFile << member.name[i] << "\n" << member.membershipList[i] << " " << member.contactNum[i] << " " << member.topUp[i] << " " << member.points[i] << endl;
+    }
+
+    outFile.close();
 }
 
 //Membership Points Module Function
-void pointsModule()
+bool pointsModule(double payment, string paymentMethod)
 {
-    //Insert Membership Points Module here
+    ifstream inFile;
+    ofstream outFile;
+
+    inFile.open(dataFile);
+
+    position = 0; //Reset the position to 0
+    getline(inFile, clearInfo);
+    getline(inFile, clearInfo);
+    while (getline(inFile, member.name[position])) // Retrieve each data into array form
+    {
+        inFile >> member.membershipList[position] >> member.contactNum[position] >> member.topUp[position] >> member.points[position];
+        inFile.get();
+        position++;
+    }
+
+    inFile.close();
+
+    if (paymentMethod == "1")
+    {
+        member.points[chosen_position] += (int)payment;
+    }
+    else if (paymentMethod == "2")
+    {
+        if ((double)member.points[chosen_position] / 100 >= payment)
+        {
+            member.points[chosen_position] -= payment * 100;
+            cout << "\nPayment received using membership points. Your new membership points is " << member.points[chosen_position] << "." << endl;
+            return true;
+        }
+        else if ((double)member.points[chosen_position] / 100 < payment)
+        {
+            cout << "\nInsufficient membership points !!!" << endl;
+            return false;
+        }
+    }
+
+    outFile.open(dataFile);
+
+    outFile << info;
+    for (int i = 0; i < position; i++) // Write all the data back to the file
+    {
+        outFile << member.name[i] << "\n" << member.membershipList[i] << " " << member.contactNum[i] << " " << member.topUp[i] << " " << member.points[i] << endl;
+    }
+
+    outFile.close();
 }
