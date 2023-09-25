@@ -898,16 +898,16 @@ void topupModule()
 void paymentModule(char waysToDine, int orderCount, int orderedQuantity[], char orderedFoodType[], string foodsOrdered[], float foodOrderedPrice[])
 {
     double subtotal = 0;
-    double payment = 0; //Payment Testing
+    double payment = 0;
     for (int i = 0; i < orderCount + 1; i++)
     {
         subtotal += foodOrderedPrice[i];
     }
-    if (waysToDine == 'D')
+    if (waysToDine == 'D' || waysToDine == 'd')
     {
         payment = subtotal * 1.10;
     }
-    else if (waysToDine == 'T')
+    else if (waysToDine == 'T' || waysToDine == 't')
     {
         payment = subtotal + 2.00;
     }
