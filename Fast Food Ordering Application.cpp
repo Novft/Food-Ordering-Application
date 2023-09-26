@@ -1166,6 +1166,14 @@ void printReceipt(char waysToDine, int orderCount, int orderedQuantity[], char o
     }
     outFile << "==================================================================================" << endl << endl;
     outFile << showpoint << fixed << setprecision(2) << "Subtotal: RM" << subtotal << endl;
+    if (waysToDine == 'D' || waysToDine == 'd')
+    {
+        outFile << "Dine-In Service Charges : x10%" << endl;
+    }
+    else if (waysToDine == 'T' || waysToDine == 't')
+    {
+        outFile << "Take-Away Packaging Charges : +RM2.00" << endl;
+    }
     outFile << showpoint << fixed << setprecision(2) << "Total Payment: RM" << payment << endl;
     outFile << "Membership number: " << member.membershipList[chosen_position] << endl;
     outFile << "Membership name: " << member.name[chosen_position] << endl;
@@ -1187,6 +1195,14 @@ void printReceipt(char waysToDine, int orderCount, int orderedQuantity[], char o
     }
     cout << "==================================================================================" << endl << endl;
     cout << showpoint << fixed << setprecision(2) << "Subtotal: RM" << subtotal << endl;
+    if (waysToDine == 'D' || waysToDine == 'd')
+    {
+        cout << "Dine-In Service Charges : x10%" << endl;
+    }
+    else if (waysToDine == 'T' || waysToDine == 't')
+    {
+        cout << "Take-Away Packaging Charges : +RM2.00" << endl;
+    }
     cout << showpoint << fixed << setprecision(2) << "Total Payment: RM" << payment << endl;
     cout << "Membership number: " << member.membershipList[chosen_position] << endl;
     cout << "Membership name: " << member.name[chosen_position] << endl;
